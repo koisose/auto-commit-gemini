@@ -1,15 +1,11 @@
 #!/usr/bin/env node
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import dotenv from "dotenv";
 import { execSync, spawn } from "child_process";
 import { confirm } from '@clack/prompts';
-import Groq from "groq-sdk";
-import dotenv from "dotenv";
 dotenv.config();
 
-const API_KEY = process.env.GROQ_API_KEY;
-const groq = new Groq({
-    apiKey: API_KEY
-});
-
+const API_KEY = process.env.GOOGLE_API_KEY; // Replace with your actual API key
 const systemMessage = `You are a commit message generator create a commit message in english by their diff string, 
 you don't need to explain anything just put the commit message, first "<subject>" and "<body>" always in english, this is the schema:
 
@@ -33,8 +29,10 @@ Indonesian translation:
 
 📝 docs(README): tambah demo web dan proyek Clarifai.
 Menambahkan tautan demo web dan halaman proyek Clarifai ke dalam dokumentasi. Pengguna kini dapat mengakses demo aplikasi GPT-4 Turbo dan melihat proyek Clarifai melalui tautan yang disediakan.
----`;
+---
 
+create commit message from this git diff:`;
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 async function gitDiffStaged() {
   const child = spawn("git", ["diff", "--staged"]);
@@ -60,37 +58,21 @@ async function gitDiffStaged() {
 }
 async function run() {
   try {
-    execSync(`#!/bin/bash
-
-    # Find the first changed file using git status
-    first_changed_file=$(git status --porcelain | awk '{print $2}' | head -n 1)
-    
-    # Check if a file was found
-    if [ -z "$first_changed_file" ]; then
-        echo "No changed files found."
-        exit 1
-    fi
-    
-    # Add the first changed file to staging
-    git add "$first_changed_file"`);
+    execSync(`bash add-first-untracked.sh`);
     const diffString = await gitDiffStaged();
     if (!diffString.trim()) {
       throw { status: 5001, message: "No changes to commit" };
     }
-    const completion = await groq.chat.completions.create({
-      messages: [
-          {
-              role: "system",
-              content: systemMessage
-          },
-          {
-              role: "user",
-              content: diffString
-          }
-      ],
-      model: "mixtral-8x7b-32768"
-  });
-  const text=completion.choices[0]?.message?.content || "";
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    let modifiedDiffString = diffString;
+    let modifiedPrompt = `${systemMessage}
+        ${modifiedDiffString}
+        `;
+    // console.log(modifiedPrompt)
+    const result = await model.generateContent(modifiedPrompt);
+    const response = await result.response;
+    const text = response.text();
     let text2=text.replace(/```/g, '');
     let text3=text2.replace(/---/g, '')
     let text4=text3.replace(/\"/gi, "\\\"")
@@ -117,4 +99,5 @@ async function run() {
     process.exit();
   }
 }
-run()
+
+run();

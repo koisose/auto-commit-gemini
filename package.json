@@ -1,6 +1,6 @@
 {
-  "name": "auto-commit-indo",
-  "version": "1.0.29",
+  "name": "auto-commit-gemini",
+  "version": "0.0.1",
   "description": "",
   "main": "index.mjs",
   "scripts": {
@@ -11,11 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "@clack/prompts": "^0.7.0",
-    "dotenv": "^16.4.5",
-    "groq-sdk": "^0.3.2"
+    "@google/generative-ai": "^0.3.0",
+    "dotenv": "^16.4.5"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/koisose/auto-commit-indo.git"
+    "url": "https://github.com/koisose/auto-commit-gemini.git"
   }
 }
