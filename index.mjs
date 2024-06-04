@@ -84,7 +84,7 @@ async function run() {
     });
     if(!wantCommit){
       // execSync(`git add -A`);
-      execSync(`git reset --mixed HEAD~1`);
+      execSync(`git reset`);
       process.exit()
     }
     const shouldCommit = await confirm({
@@ -109,7 +109,7 @@ async function run() {
     process.exit();
   } catch (e) {
     console.log(e.message);
-    execSync(`git reset --mixed HEAD~1`);
+    execSync(`git reset`);
     process.exit();
   }
 }
