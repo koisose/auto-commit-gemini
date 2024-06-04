@@ -100,7 +100,7 @@ async function run() {
     });
     if(shouldContinue){
       // execSync(`git add -A`);
-      execSync(`printf "${text6}" | git commit -F-`);
+      execSync(`printf "${text}" | git commit -F-`);
       execSync("git push -u origin main");
     }else{
       execSync(`git reset`);
