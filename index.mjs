@@ -4,6 +4,7 @@ import { GoogleGenerativeAI,  HarmCategory,
 import dotenv from "dotenv";
 import { execSync} from "child_process";
 import { confirm } from '@clack/prompts';
+import { spawn } from 'child_process';
 dotenv.config();
 
 const API_KEY = process.env.GOOGLE_API_KEY; // Replace with your actual API key
@@ -17,7 +18,12 @@ const systemMessage = `You are a commit message generator create a commit messag
 Do not use any markdown to create commit message, just plain text, don't forget to always use <emoji>, with allowed <type> values are feat, fix, perf, docs, style, refactor, test, and build. `;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-
+function commitWithText(text) {
+  
+  const child = spawn('git', ['commit', '-F-'], { stdio: 'pipe' });
+  child.stdin.write(text);
+  child.stdin.end();
+}
 async function run() {
   try {
 
@@ -52,7 +58,7 @@ async function run() {
         threshold: HarmBlockThreshold.BLOCK_NONE,
       },
     ];
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest",
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest",
     systemInstruction: systemMessage
   }
     , { apiVersion: 'v1beta' });
@@ -70,14 +76,7 @@ async function run() {
     
 
     const text = result.response.text();
-    
- 
-    let text2=text.replace(/```/g, '');
-    let text3=text2.replace(/---/g, '')
-    let text4=text3.replace(/\"/gi, "\\\"")
-    let text5=text4.replace(/\`/gi, "\\`");
-    let text6=text5.replace(/\'/gi, "\\'");
-   console.log(text)
+    console.log(text)
   // console.log(diffString.trim())
     const wantCommit = await confirm({
       message: 'want to commit?',
@@ -92,7 +91,8 @@ async function run() {
     });
     if(shouldCommit){
       // execSync(`git add -A`);
-      execSync(`printf "${text}" | git commit -F-`);
+      
+      commitWithText(text);
       process.exit()
     }
     const shouldContinue = await confirm({
@@ -100,7 +100,7 @@ async function run() {
     });
     if(shouldContinue){
       // execSync(`git add -A`);
-      execSync(`printf "${text}" | git commit -F-`);
+      commitWithText(text);
       execSync("git push -u origin main");
     }else{
       execSync(`git reset`);
