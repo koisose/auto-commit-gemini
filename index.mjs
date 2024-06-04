@@ -92,7 +92,7 @@ async function run() {
     });
     if(shouldCommit){
       // execSync(`git add -A`);
-      execSync(`printf "${text6}" | git commit -F-`);
+      execSync(`printf "${text}" | git commit -F-`);
       process.exit()
     }
     const shouldContinue = await confirm({
